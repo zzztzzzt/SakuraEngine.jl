@@ -1,0 +1,11 @@
+<sk-script>
+x = 10
+name = "Sakura"
+</sk-script>
+
+<sk-template>
+<div>
+    <p>Hello {{ name }}</p>
+    <p>{{ x + 5 }}</p>
+</div>
+</sk-template>
