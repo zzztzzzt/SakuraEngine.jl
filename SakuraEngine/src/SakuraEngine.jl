@@ -17,6 +17,12 @@ struct IfNode <: Node
     children::Vector{Node}
 end
 
+struct ElementNode <: Node
+    tag::String
+    attrs::Dict{String,String}
+    children::Vector{Node}
+end
+
 function extract_blocks(content::String)
     script_match = match(r"<sk-script>(.*?)</sk-script>"s, content)
     template_match = match(r"<sk-template>(.*?)</sk-template>"s, content)
@@ -36,6 +42,21 @@ function eval_script(script::AbstractString)
     return mod
 end
 
+function inject_if_nodes(nodes::Vector{Node})
+    new_nodes = Node[]
+
+    for node in nodes
+        if node isa ElementNode
+            # find sk-if（ use attrs string hack first）
+            push!(new_nodes, node)
+        else
+            push!(new_nodes, node)
+        end
+    end
+
+    return new_nodes
+end
+
 function render_nodes(nodes::Vector{Node}, mod::Module)
     io = IOBuffer()
 
@@ -52,6 +73,19 @@ function render_nodes(nodes::Vector{Node}, mod::Module)
             if cond_val
                 write(io, render_nodes(node.children, mod))
             end
+        elseif node isa ElementNode
+            write(io, "<", node.tag)
+        
+            # attrs（ currently null ）
+            for (k, v) in node.attrs
+                write(io, " $k=\"$v\"")
+            end
+        
+            write(io, ">")
+        
+            write(io, render_nodes(node.children, mod))
+        
+            write(io, "</", node.tag, ">")
         end
     end
 
@@ -61,7 +95,10 @@ end
 function render_template(template::AbstractString, mod::Module)
     template = process_sk_for(template, mod)
 
-    nodes = parse_sk_if_nodes(template)
+    nodes = parse_elements(template)
+
+    nodes = inject_if_nodes(nodes)
+
     return render_nodes(nodes, mod)
 end
 
@@ -134,6 +171,42 @@ function parse_sk_if_nodes(template::String)
         child_nodes = parse_interpolations(inner)
 
         push!(nodes, IfNode(cond_expr, child_nodes))
+
+        last_idx = end_idx + 1
+    end
+
+    # The remaining part
+    if last_idx <= lastindex(template)
+        append!(nodes, parse_interpolations(template[last_idx:end]))
+    end
+
+    return nodes
+end
+
+function parse_elements(template::String)
+    pattern = r"<(\w+)([^>]*)>(.*?)</\1>"s
+
+    nodes = Node[]
+    last_idx = 1
+
+    for m in eachmatch(pattern, template)
+        start_idx = m.offset
+        end_idx = m.offset + length(m.match) - 1
+
+        # The preceding text
+        if start_idx > last_idx
+            append!(nodes, parse_interpolations(template[last_idx:start_idx-1]))
+        end
+
+        tag = m.captures[1]
+        attr_str = strip(m.captures[2])
+        inner = m.captures[3]
+
+        attrs = Dict{String,String}()
+
+        children = parse_interpolations(inner)
+
+        push!(nodes, ElementNode(tag, attrs, children))
 
         last_idx = end_idx + 1
     end
