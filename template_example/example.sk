@@ -1,6 +1,8 @@
 <sk-script>
 x = 10
 name = "Sakura"
+
+items = [1,2,3]
 </sk-script>
 
 <sk-template>
@@ -20,4 +22,15 @@ name = "Sakura"
       small
     </p>
 </div>
+<ul>
+  <li
+    sk-for="item in items"
+  >
+    <span
+      sk-if="item > 1"
+    >
+        {{ item }}
+    </span>
+  </li>
+</ul>
 </sk-template>

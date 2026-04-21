@@ -22,6 +22,7 @@ function eval_script(script::AbstractString)
 end
 
 function render_template(template::AbstractString, mod::Module)
+    template = process_sk_for(template, mod)
     template = process_sk_if(template, mod)
 
     result = template
@@ -78,6 +79,47 @@ function process_sk_if(template::AbstractString, mod::Module)
 
             curr = curr[1:m.offset-1] * replacement * curr[m.offset+length(m.match):end]
         end
+    end
+
+    return curr
+end
+
+function process_sk_for(template::AbstractString, mod::Module)
+    pattern = r"<(\w+)([^>]*)\s+sk-for=\"(.*?) in (.*?)\"([^>]*)>(.*?)</\1>"s
+    curr = String(template)
+
+    while true
+        m = match(pattern, curr)
+        isnothing(m) && break
+
+        tag = m.captures[1]
+        before_attrs = m.captures[2]
+        var_name = Symbol(strip(m.captures[3]))
+        iterable_str = strip(m.captures[4])
+        after_attrs = m.captures[5]
+        inner = m.captures[6]
+
+        iterable = Core.eval(mod, Meta.parse(iterable_str))
+        result_html = ""
+
+        for val in iterable
+            Core.eval(mod, :($var_name = $val))
+
+            processed_inner = process_sk_if(inner, mod)
+
+            # process {{ }}
+            processed_inner = replace(processed_inner, r"\{\{(.*?)\}\}"s => function(matched_str)
+                expr_str = strip(match(r"\{\{(.*?)\}\}"s, matched_str).captures[1])
+                ex = Meta.parse(expr_str)
+                return string(Core.eval(mod, ex))
+            end)
+
+            combined_attrs = strip(string(before_attrs, " ", after_attrs))
+            attr_str = isempty(combined_attrs) ? "" : " " * combined_attrs
+            result_html *= "<$tag$attr_str>$(strip(processed_inner))</$tag>"
+        end
+
+        curr = curr[1:m.offset-1] * result_html * curr[m.offset+length(m.match):end]
     end
 
     return curr
