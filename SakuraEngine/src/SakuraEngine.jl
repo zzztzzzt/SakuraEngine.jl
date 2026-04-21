@@ -12,6 +12,11 @@ struct InterpNode <: Node
     expr::Union{Expr, Symbol, Number}
 end
 
+struct IfNode <: Node
+    cond::Expr
+    children::Vector{Node}
+end
+
 function extract_blocks(content::String)
     script_match = match(r"<sk-script>(.*?)</sk-script>"s, content)
     template_match = match(r"<sk-template>(.*?)</sk-template>"s, content)
@@ -41,6 +46,12 @@ function render_nodes(nodes::Vector{Node}, mod::Module)
         elseif node isa InterpNode
             val = Core.eval(mod, node.expr)
             write(io, string(val))
+
+        elseif node isa IfNode
+            cond_val = Core.eval(mod, node.cond)
+            if cond_val
+                write(io, render_nodes(node.children, mod))
+            end
         end
     end
 
@@ -49,9 +60,8 @@ end
 
 function render_template(template::AbstractString, mod::Module)
     template = process_sk_for(template, mod)
-    template = process_sk_if(template, mod)
 
-    nodes = parse_interpolations(template)
+    nodes = parse_sk_if_nodes(template)
     return render_nodes(nodes, mod)
 end
 
@@ -68,7 +78,7 @@ function render_file(path::String)
     return strip(html)
 end
 
-function parse_interpolations(template::String)
+function parse_interpolations(template::AbstractString)
     nodes = Node[]
     pattern = r"\{\{(.*?)\}\}"s
 
@@ -95,6 +105,42 @@ function parse_interpolations(template::String)
     # The remaining text
     if last_idx <= lastindex(template)
         push!(nodes, TextNode(template[last_idx:end]))
+    end
+
+    return nodes
+end
+
+function parse_sk_if_nodes(template::String)
+    pattern = r"<(\w+)([^>]*)\s+sk-if=\"(.*?)\"([^>]*)>(.*?)</\1>"s
+
+    nodes = Node[]
+    last_idx = 1
+
+    for m in eachmatch(pattern, template)
+        start_idx = m.offset
+        end_idx = m.offset + length(m.match) - 1
+
+        # The preceding ordinary content
+        if start_idx > last_idx
+            text = template[last_idx:start_idx-1]
+            append!(nodes, parse_interpolations(text))
+        end
+
+        # sk-if block
+        cond_expr = Meta.parse(strip(m.captures[3]))
+        inner = m.captures[5]
+
+        # inner also needs to be parsed into nodes
+        child_nodes = parse_interpolations(inner)
+
+        push!(nodes, IfNode(cond_expr, child_nodes))
+
+        last_idx = end_idx + 1
+    end
+
+    # The remaining part
+    if last_idx <= lastindex(template)
+        append!(nodes, parse_interpolations(template[last_idx:end]))
     end
 
     return nodes
