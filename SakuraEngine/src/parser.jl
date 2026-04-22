@@ -171,6 +171,18 @@ function parse_elements(template::AbstractString)
             append!(nodes, parse_interpolations(template[i:prevind(template, lt)]))
         end
 
+        if startswith(SubString(template, lt), "<!--")
+            close_idx = findnext("-->", template, lt)
+            if close_idx === nothing
+                push!(nodes, CommentNode(template[lt:end]))
+                break
+            else
+                push!(nodes, CommentNode(template[lt:last(close_idx)]))
+                i = nextind(template, last(close_idx))
+                continue
+            end
+        end
+
         result = parse_open_tag(template, lt)
         if result === nothing
             # Not a valid tag, treat `<` as plain text

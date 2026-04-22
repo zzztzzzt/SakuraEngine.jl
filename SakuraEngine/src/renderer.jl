@@ -16,6 +16,9 @@ function render_nodes(nodes::Vector{Node}, mod::Module)
         if node isa TextNode
             write(io, node.content)
 
+        elseif node isa CommentNode
+            write(io, node.content)
+
         elseif node isa InterpNode
             val = try
                 Core.eval(mod, node.expr)

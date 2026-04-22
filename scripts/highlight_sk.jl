@@ -30,6 +30,7 @@ function highlight_sk(filename::String)
         :delimiter           => "\033[38;2;200;167;252m",
         :sk_script_body      => "\033[38;2;180;180;180m",
         :title               => "\033[1;37m",
+        :comment             => "\033[38;2;135;206;235m",
     )
     reset = "\033[0m"
 
@@ -139,6 +140,12 @@ function highlight_sk(filename::String)
                 attr_part *
                 theme[:html_tag_name] * tail_part * reset
             end)
+
+        # 4. Comments #= ... =# and <!-- ... -->
+        s = replace(s, r"(#=.*?=#|<!--.*?-->)"s => sub -> begin
+            clean_sub = replace(String(sub), r"\033\[[0-9;]*m" => "")
+            theme[:comment] * clean_sub * reset
+        end)
 
         s
     end

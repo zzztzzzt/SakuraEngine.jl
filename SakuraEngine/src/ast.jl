@@ -10,6 +10,11 @@ struct TextNode <: Node
     content::String
 end
 
+# HTML Comment node
+struct CommentNode <: Node
+    content::String
+end
+
 # {{ expr }} Interpolation node
 struct InterpNode <: Node
     expr::Union{Expr, Symbol, Number}

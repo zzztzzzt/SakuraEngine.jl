@@ -21,6 +21,9 @@ function extract_blocks(content::String)
         @warn "SakuraEngine [Compiler] : The <sk-template> block was not found; an empty string will be returned"
     end
 
+    # Convert #= ... =# to <!-- ... --> in template
+    template = replace(template, r"#=(.*?)=#"s => s"<!--\1-->")
+
     return script, template
 end
 
