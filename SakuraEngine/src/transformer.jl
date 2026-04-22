@@ -12,7 +12,7 @@ const ELSEIF_DIRECTIVES = ("sk-else-if", "v-else-if")
 const ELSE_DIRECTIVES = ("sk-else", "v-else")
 
 """
-    _parse_for_expr(expr) -> (var::Symbol, iterable)
+    _parse_for_expr(expr) -> (var, iterable)
 
 Parse for expressions in the format `item in items` or `(idx, item) in items`.
 """
@@ -24,7 +24,12 @@ function _parse_for_expr(expr::AbstractString)
     var_str = strip(parts[1])
     iterable_str = strip(parts[2])
 
-    var = Symbol(var_str)
+    var = try
+        Meta.parse(var_str)
+    catch e
+        error("SakuraEngine [Transformer] : for expression var parsing failed `$var_str` - $e")
+    end
+
     iterable = try
         Meta.parse(iterable_str)
     catch e

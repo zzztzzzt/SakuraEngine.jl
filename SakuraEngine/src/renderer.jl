@@ -44,7 +44,24 @@ function render_nodes(nodes::Vector{Node}, mod::Module)
         elseif node isa ElementNode
             write(io, "<", node.tag)
             for (k, v) in node.attrs
-                write(io, " $k=\"$v\"")
+                if startswith(k, "sk-bind:")
+                    attr_name = SubString(k, 9)
+                    val = try
+                        Core.eval(mod, Meta.parse(v))
+                    catch e
+                        error("SakuraEngine [Renderer] : sk-bind expression evaluation failed `$v` - $e")
+                    end
+                    
+                    if val isa Bool
+                        if val
+                            write(io, " $attr_name")
+                        end
+                    elseif val !== nothing
+                        write(io, " $attr_name=\"$val\"")
+                    end
+                else
+                    write(io, " $k=\"$v\"")
+                end
             end
             write(io, ">")
             write(io, render_nodes(node.children, mod))

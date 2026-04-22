@@ -32,7 +32,7 @@ end
 
 # sk-for / v-for Loop node
 struct ForNode <: Node
-    var::Symbol
+    var::Union{Symbol, Expr}
     iterable::Any
     children::Vector{Node}
 end
