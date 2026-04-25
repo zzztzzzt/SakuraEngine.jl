@@ -52,9 +52,10 @@ function highlight_sk(filename::String)
 
     # Highlight sk-* and class= attributes inside an attr string
     function highlight_attrs(attr_part::AbstractString)
-        # a. sk-* attributes ( name + optional ="value" )
+        # a. sk-* attributes ( supports optional suffixes like sk-bind:href )
+        attr_name_re = "($(sk_attr_pattern))(?:\\:[A-Za-z_][A-Za-z0-9_\\-]*)?"
         processed = replace(String(attr_part),
-            Regex("($(sk_attr_pattern))(\\s*=\\s*\"[^\"]*\")?", "i") => a -> begin
+            Regex("($attr_name_re)(\\s*=\\s*\"[^\"]*\")?", "i") => a -> begin
                 a = String(a)
                 am = match(Regex("($(sk_attr_pattern))", "i"), a)
                 am === nothing && return a
