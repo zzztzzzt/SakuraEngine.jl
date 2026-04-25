@@ -6,11 +6,11 @@ Responsible for parsing the original HTML string into an AST Node tree.
 """
     parse_interpolations(template) -> Vector{Node}
 
-Parse text segments containing `{{ expr }}` interpolations into a sequence of TextNode / InterpNode.
+Parse text segments containing `{{|| expr ||}}` interpolations into a sequence of TextNode / InterpNode.
 """
 function parse_interpolations(template::AbstractString)
     nodes = Node[]
-    pattern = r"\{\{(.*?)\}\}"s
+    pattern = r"\{\{\|\|(.*?)\|\|\}\}"s
     last_idx = 1
 
     for m in eachmatch(pattern, template)
@@ -25,7 +25,7 @@ function parse_interpolations(template::AbstractString)
         ex = try
             Meta.parse(expr_str)
         catch e
-            error("SakuraEngine [Parser] : Interpolation expression parsing failed `{{ $expr_str }}` - $e")
+            error("SakuraEngine [Parser] : Interpolation expression parsing failed `{{|| $expr_str ||}}` - $e")
         end
         push!(nodes, InterpNode(ex))
 

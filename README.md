@@ -38,8 +38,8 @@ dict_items = Dict("A" => 100, "B" => 200)
 
 <sk-template>
 <div>
-  <p>Hello {{ name }}</p>
-  <p>{{ x + 5 }}</p>
+  <p>Hello {{|| name ||}}</p>
+  <p>{{|| x + 5 ||}}</p>
 </div>
 
 #= sk-if / sk-else-if / sk-else chain =#
@@ -62,13 +62,13 @@ dict_items = Dict("A" => 100, "B" => 200)
 <ul>
   <li sk-for="item in items">
     <span sk-if="item > 2">
-      {{ item }} - big
+      {{|| item ||}} - big
     </span>
     <span sk-else-if="item == 2">
-      {{ item }} - medium
+      {{|| item ||}} - medium
     </span>
     <span sk-else>
-      {{ item }} - small
+      {{|| item ||}} - small
     </span>
   </li>
 </ul>
@@ -76,7 +76,7 @@ dict_items = Dict("A" => 100, "B" => 200)
 #= sk-for with tuple destructuring =#
 <ul>
   <li sk-for="(k, v) in dict_items">
-    {{ k }} : {{ v }}
+    {{|| k ||}} : {{|| v ||}}
   </li>
 </ul>
 

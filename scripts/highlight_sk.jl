@@ -39,14 +39,16 @@ function highlight_sk(filename::String)
 
     # helpers
 
-    # Highlight {{ expr }} inside an already-extracted string
+    # Highlight {{|| expr ||}} inside an already-extracted string
     function highlight_expressions(s::AbstractString)
-        replace(String(s), r"\{\{.*?\}\}"s => sub -> begin
+        replace(String(s), r"\{\{\|\|.*?\|\|\}\}"s => sub -> begin
             sub = String(sub)
-            inner = sub[3:end-2]
+            inner = sub[5:end-4]
             has_op = occursin(r"[+\-*/%&|=!><]", inner)
             color = has_op ? theme[:expression_computed] : theme[:expression]
-            theme[:delimiter] * "{{" * reset * color * inner * reset * theme[:delimiter] * "}}" * reset
+            theme[:delimiter] * "{{" * reset *
+            color * "||" * inner * "||" * reset *
+            theme[:delimiter] * "}}" * reset
         end)
     end
 
@@ -119,7 +121,7 @@ function highlight_sk(filename::String)
                 tag_color * sub * reset
             end)
 
-        # 2. Expressions {{ ... }}
+        # 2. Expressions {{|| ... ||}}
         s = highlight_expressions(s)
 
         # 3. Standard HTML tags — quote-aware attr matching

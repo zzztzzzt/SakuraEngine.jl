@@ -15,7 +15,7 @@ struct CommentNode <: Node
     content::String
 end
 
-# {{ expr }} Interpolation node
+# {{|| expr ||}} Interpolation node
 struct InterpNode <: Node
     expr::Union{Expr, Symbol, Number}
 end
