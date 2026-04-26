@@ -5,7 +5,7 @@ using SakuraEngine
 workspace_dir = joinpath(@__DIR__, "..", "sakura-vue", ".sakura")
 base_html_path = joinpath(workspace_dir, "hydration_example.base.html")
 panel_html_path = joinpath(workspace_dir, "vue-panel.ssr.html")
-output_path = joinpath(@__DIR__, "..", "sakura-vue", "public", "hydration_example.html")
+output_path = joinpath(@__DIR__, "..", "sakura-vue", "index.html")
 
 isfile(base_html_path) || error("Base HTML not found: $base_html_path")
 isfile(panel_html_path) || error("Vue panel HTML not found: $panel_html_path")
@@ -30,4 +30,3 @@ println("")
 println("Next :")
 println("1. cd sakura-vue")
 println("2. npm run dev")
-println("3. open the url http://127.0.0.1:5173/hydration_example.html")

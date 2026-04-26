@@ -6,7 +6,7 @@ input_path = joinpath(@__DIR__, "..", "template_example", "hydration_example.sk"
 workspace_dir = joinpath(@__DIR__, "..", "sakura-vue", ".sakura")
 base_html_path = joinpath(workspace_dir, "hydration_example.base.html")
 state_path = joinpath(workspace_dir, "vue-panel-state.json")
-preview_output_path = joinpath(@__DIR__, "..", "sakura-vue", "public", "hydration_example.html")
+preview_output_path = joinpath(@__DIR__, "..", "sakura-vue", "index.html")
 
 mkpath(workspace_dir)
 

@@ -27,7 +27,7 @@ pending_count = count(todo -> !todo["done"], todos)
 }
 </script>
 
-<script type="module" src="http://127.0.0.1:5173/src/entry-client.ts"></script>
+<script type="module" src="/src/entry-client.ts"></script>
 
 <sk-template>
 <section id="vue-panel" sk-if="show_panel">

@@ -1,13 +1,26 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>sakura-vue</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>
+<script type="application/json" id="sk-hydration-state">
+{
+  "title": "Sakura + Vue 3 Hydration",
+  "user": { "name": "Sakura" },
+  "count": 2,
+  "serverTags": ["ssr", "hydration"],
+  "disableIncrement": false,
+  "todos": [
+    { "id": 1, "label": "first true hydration block", "done": false },
+    { "id": 2, "label": "move mixed syntax outside panel", "done": true }
+  ]
+}
+</script>
+<script type="module" src="/src/entry-client.ts"></script>
+<section id="vue-panel"><!--[--><h1>Sakura + Vue 3 Hydration</h1><p>Server Sakura / Client Sakura</p><p>Pending (server): 1</p><button> Count: 2</button><ul><!--[--><li>tag = ssr</li><li>tag = hydration</li><!--]--></ul><ul><!--[--><li>first true hydration block / owner Sakura</li><li>move mixed syntax outside panel / owner Sakura</li><!--]--></ul><p>Step now: direct hydration. Step later: bring more mixed zones into Vue SSR.</p><!--]--></section><section class="mixed-preview">
+  <h2>Mixed Syntax Preview Outside Hydration Block</h2>
+  <p>Server value: Sakura</p>
+  <p>Vue value kept for later: {{ user.name }}</p>
+  <ul>
+    <li v-if="ready">
+      tag = ssr
+    </li><li v-if="ready">
+      tag = hydration
+    </li>
+  </ul>
+</section>
