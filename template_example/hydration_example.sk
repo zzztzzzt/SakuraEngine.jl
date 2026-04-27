@@ -1,69 +1,94 @@
-#= Julia server context =#
+#= Julia script =#
 <sk-script>
-title = "Sakura + Vue 3 Hydration"
+title = "Sakura mix Vue SFC"
 user_name = "Sakura"
 show_panel = true
 disable_increment = false
-initial_count = 2
-server_tags = ["ssr", "hydration"]
+initial_count = 5
+server_tags = ["ssr", "hydration", "sfc"]
 todos = [
-    Dict("id" => 1, "label" => "first true hydration block", "done" => false),
-    Dict("id" => 2, "label" => "move mixed syntax outside panel", "done" => true),
+    Dict("id" => 1, "label" => "Setup Sakura-SFC ", "done" => true),
+    Dict("id" => 2, "label" => "Enjoy Single File Dev ", "done" => false),
 ]
 pending_count = count(todo -> !todo["done"], todos)
 </sk-script>
 
-<script type="application/json" id="sk-hydration-state">
-{
-  "title": "{{|| title ||}}",
-  "user": { "name": "{{|| user_name ||}}" },
-  "count": {{|| initial_count ||}},
-  "serverTags": ["ssr", "hydration"],
-  "disableIncrement": false,
-  "todos": [
-    { "id": 1, "label": "first true hydration block", "done": false },
-    { "id": 2, "label": "move mixed syntax outside panel", "done": true }
-  ]
-}
+#= TypeScript / Vue Logic =#
+<script type="sk-ts">
+  interface Todo {
+    id: number;
+    text: string;
+    done: boolean;
+  }
+
+  interface ServerTag {
+    id: string;
+    name: string;
+  }
+
+  const title = ref<string>({{|| title ||}})
+  const user = ref<string>({{|| user_name ||}})
+  const count = ref<number>({{|| initial_count ||}})
+  const todos = ref<Todo[]>({{|| todos ||}})
+  const serverTags = ref<ServerTag[]>({{|| server_tags ||}})
+  
+  const ready = ref<boolean>(false)
+
+  const pending = computed((): number => {
+    return todos.value.filter((t: Todo) => !t.done).length
+  })
+
+  onMounted(() => {
+    ready.value = true
+  })
+
+  return { title, user, count, todos, serverTags, ready, pending }
 </script>
 
 <script type="module" src="/src/entry-client.ts"></script>
 
 <sk-template>
 <section id="vue-panel" sk-if="show_panel">
-  <h1>{{|| title ||}}</h1>
-  <p>Server {{|| user_name ||}} / Client {{|| user_name ||}}</p>
+  <h1>{{ title }}</h1>
+  <p>Server : {{|| user_name ||}} / Client : {{ user }}</p>
   
-  <p v-if="ready">Pending: {{ pending }}</p>
-  <p v-else>Pending (server): {{|| pending_count ||}}</p>
+  <p v-if="ready">Client Pending : {{ pending }}</p>
+  <p v-else>Server Pending : {{|| pending_count ||}}</p>
 
-  <button sk-bind:disabled="disable_increment" @click="count++">
-    Count: {{|| initial_count ||}}
+  <button @click="count++">
+    Count: {{ count }}
   </button>
 
+  <h3>Tags ( Hybrid List )</h3>
   <ul>
-    <li sk-for="tag in server_tags">
-      tag = {{|| tag ||}}
+    #= sk-for for SEO, v-for for Reactivity =#
+    <li
+      sk-for="tag in server_tags"
+      v-for="tag in serverTags"
+      :key="tag"
+    >
+      tag = {{ tag }}
     </li>
   </ul>
 
+  <h3>Todos</h3>
   <ul>
-    <li sk-for="todo in todos" :key="todo['id']">
-      {{|| todo["label"] ||}} / owner {{|| user_name ||}}
+    <li
+      sk-for="todo in todos"
+      v-for="todo in todos"
+      :key="todo.id"
+    >
+      <span
+        :style="{ textDecoration: todo.done ? 'line-through' : 'none' }"
+      >
+        {{ todo.label }}
+      </span>
+      <button
+        @click="todo.done = !todo.done"
+      >Toggle</button>
     </li>
   </ul>
 
-  <p>Step now : direct hydration. Step later : bring more mixed zones into Vue SSR.</p>
-</section>
-
-<section class="mixed-preview">
-  <h2>Mixed Syntax Preview Outside Hydration Block</h2>
-  <p>Server value: {{|| user_name ||}}</p>
-  <p>Vue value kept for later: {{ user.name }}</p>
-  <ul>
-    <li sk-for="tag in server_tags" v-if="ready">
-      tag = {{|| tag ||}}
-    </li>
-  </ul>
+  <p>Status : All zones are now hydrated and reactive via Sakura-SFC.</p>
 </section>
 </sk-template>

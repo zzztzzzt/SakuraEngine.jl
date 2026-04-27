@@ -1,7 +1,7 @@
 import { renderToString } from '@vue/server-renderer'
-import { createSkPanelApp, type SkPanelState } from './app'
+import { createSkPanelApp } from './app'
 
-export async function renderVuePanel(state: Partial<SkPanelState>) {
-  const app = createSkPanelApp(state)
+export async function renderVuePanel() {
+  const app = createSkPanelApp()
   return await renderToString(app)
 }
