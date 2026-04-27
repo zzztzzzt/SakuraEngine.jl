@@ -27,7 +27,7 @@ IMPORTANT : This project is still in the development and testing stages, licensi
 <sk-script>
 title = "Sakura mix Vue SFC"
 user_name = "Sakura"
-show_panel = true
+show_server_hello = true
 disable_increment = false
 initial_count = 5
 server_tags = ["ssr", "hydration", "sfc"]
@@ -40,42 +40,48 @@ pending_count = count(todo -> !todo["done"], todos)
 
 #= TypeScript / Vue Logic =#
 <script type="sk-ts">
-  interface Todo {
-    id: number;
-    text: string;
-    done: boolean;
-  }
+interface Todo {
+  id: number;
+  text: string;
+  done: boolean;
+}
 
-  interface ServerTag {
-    id: string;
-    name: string;
-  }
+interface ServerTag {
+  id: string;
+  name: string;
+}
 
-  const title = ref<string>({{|| title ||}})
-  const user = ref<string>({{|| user_name ||}})
-  const count = ref<number>({{|| initial_count ||}})
-  const todos = ref<Todo[]>({{|| todos ||}})
-  const serverTags = ref<ServerTag[]>({{|| server_tags ||}})
-  
-  const ready = ref<boolean>(false)
+const title = ref<string>({{|| title ||}})
+const user = ref<string>({{|| user_name ||}})
+const count = ref<number>({{|| initial_count ||}})
+const todos = ref<Todo[]>({{|| todos ||}})
+const serverTags = ref<ServerTag[]>({{|| server_tags ||}})
 
-  const pending = computed((): number => {
-    return todos.value.filter((t: Todo) => !t.done).length
-  })
+const ready = ref<boolean>(false)
 
-  onMounted(() => {
-    ready.value = true
-  })
+const pending = computed((): number => {
+  return todos.value.filter((t: Todo) => !t.done).length
+})
 
-  return { title, user, count, todos, serverTags, ready, pending }
+onMounted(() => {
+  ready.value = true
+})
+
+return { title, user, count, todos, serverTags, ready, pending }
 </script>
 
 <script type="module" src="/src/entry-client.ts"></script>
 
+#= Template Area ( SRR + Vue Hydration ) =#
 <sk-template>
-<section id="vue-panel" sk-if="show_panel">
+<section id="vue-panel">
   <h1>{{ title }}</h1>
   <p>Server : {{|| user_name ||}} / Client : {{ user }}</p>
+  <p
+    sk-if="show_server_hello"
+  >
+    Hello from SakuraEngine server side
+  </p>
   
   <p v-if="ready">Client Pending : {{ pending }}</p>
   <p v-else>Server Pending : {{|| pending_count ||}}</p>

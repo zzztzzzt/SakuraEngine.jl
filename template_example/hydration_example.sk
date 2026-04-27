@@ -2,7 +2,7 @@
 <sk-script>
 title = "Sakura mix Vue SFC"
 user_name = "Sakura"
-show_panel = true
+show_server_hello = true
 disable_increment = false
 initial_count = 5
 server_tags = ["ssr", "hydration", "sfc"]
@@ -47,10 +47,16 @@ return { title, user, count, todos, serverTags, ready, pending }
 
 <script type="module" src="/src/entry-client.ts"></script>
 
+#= Template Area ( SRR + Vue Hydration ) =#
 <sk-template>
-<section id="vue-panel" sk-if="show_panel">
+<section id="vue-panel">
   <h1>{{ title }}</h1>
   <p>Server : {{|| user_name ||}} / Client : {{ user }}</p>
+  <p
+    sk-if="show_server_hello"
+  >
+    Hello from SakuraEngine server side
+  </p>
   
   <p v-if="ready">Client Pending : {{ pending }}</p>
   <p v-else>Server Pending : {{|| pending_count ||}}</p>
