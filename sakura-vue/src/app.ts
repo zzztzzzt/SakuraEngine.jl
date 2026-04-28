@@ -1,5 +1,5 @@
 import { createSSRApp } from 'vue'
-import template from '../.sakura/vue-template'
+import template from './sakura/vue-template'
 import setupUserLogic from './generated-logic'
 
 export function createSkPanelApp() {

@@ -1,26 +1,2 @@
-<script type="sk-ts">
-interface Todo {
-  id: number;
-  text: string;
-  done: boolean;
-}
-interface ServerTag {
-  id: string;
-  name: string;
-}
-const title = ref<string>(Sakura mix Vue SFC)
-const user = ref<string>(Sakura)
-const count = ref<number>(5)
-const todos = ref<Todo[]>(Dict{String, Any}[Dict("label" => "Setup Sakura-SFC ", "done" => true, "id" => 1), Dict("label" => "Enjoy Single File Dev ", "done" => false, "id" => 2)])
-const serverTags = ref<ServerTag[]>(["ssr", "hydration", "sfc"])
-const ready = ref<boolean>(false)
-const pending = computed((): number => {
-  return todos.value.filter((t: Todo) => !t.done).length
-})
-onMounted(() => {
-  ready.value = true
-})
-return { title, user, count, todos, serverTags, ready, pending }
-</script>
+<section id="sk-hydration-area"><section id="sk-hydration-area"><h1>Sakura mix Vue SFC</h1><p>Server : Sakura / Client : Sakura</p><p> Hello from SakuraEngine server side </p><p>Server Pending : 1</p><button> Count: 5</button><h3>Tags ( Hybrid List )</h3><ul><!-- sk-for for SEO, v-for for Reactivity --><!--[--><li> tag = ssr</li><li> tag = hydration</li><li> tag = sfc</li><!--]--></ul><h3>Todos</h3><ul><!--[--><li><span style="text-decoration:line-through;">Setup Sakura-SFC </span><button>Toggle</button></li><li><span style="text-decoration:none;">Enjoy Single File Dev </span><button>Toggle</button></li><!--]--></ul><p>Status : All zones are now hydrated and reactive via Sakura-SFC.</p></section></section>
 <script type="module" src="/src/entry-client.ts"></script>
-<section id="vue-panel"><section id="vue-panel"><h1>Sakura mix Vue SFC</h1><p>Server : Sakura / Client : Sakura</p><p> Hello from SakuraEngine server side </p><p>Server Pending : 1</p><button> Count: 5</button><h3>Tags ( Hybrid List )</h3><ul><!-- sk-for for SEO, v-for for Reactivity --><!--[--><li> tag = ssr</li><li> tag = hydration</li><li> tag = sfc</li><!--]--></ul><h3>Todos</h3><ul><!--[--><li><span style="text-decoration:line-through;">Setup Sakura-SFC </span><button>Toggle</button></li><li><span style="text-decoration:none;">Enjoy Single File Dev </span><button>Toggle</button></li><!--]--></ul><p>Status : All zones are now hydrated and reactive via Sakura-SFC.</p></section></section>

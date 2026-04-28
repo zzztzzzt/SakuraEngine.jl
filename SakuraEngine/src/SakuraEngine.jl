@@ -28,7 +28,8 @@ include("parser.jl")
 include("transformer.jl")
 include("renderer.jl")
 include("compiler.jl")
+include("pipeline.jl")
 
-export render_file, render_template, set_config
+export render_file, render_template, set_config, export_assets
 
 end # module SakuraEngine

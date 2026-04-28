@@ -56,18 +56,40 @@ function render_server_fragment(fragment::AbstractString, mod::Module)
 end
 
 """
-    render_file(path) -> String
+    render_file(path; vue_ssr::String="") -> String
 
 Complete rendering process entry : read .sk file, execute `<sk-script>`, render
 `<sk-template>`, preserve top-level sibling content, and normalize whitespace.
+If `vue_ssr` is provided, it will replace the content of the element with 
+id `sk-hydration-area`.
 """
-function render_file(path::String)
+function render_file(path::String; vue_ssr::String="")
     isfile(path) || error("SakuraEngine [Compiler] : File not found `$path`")
 
     content = read(path, String)
     script, template = extract_blocks(content)
     mod = eval_script(script)
     rendered_template = render_template(template, mod)
+
+    # If Vue SSR content is provided, perform injection
+    if !isempty(vue_ssr)
+        pattern = r"(<section\b[^>]*id=\"sk-hydration-area\"[^>]*>)(.*?)(</section>)"s
+        m = match(pattern, rendered_template)
+        if m !== nothing
+            open_tag = m.captures[1]
+            close_tag = m.captures[3]
+            # Replace the entire match with open_tag + vue_ssr + close_tag
+            # Note : We assume vue_ssr is the inner content or we handle it accordingly.
+            # Actually, Vue SSR renderToString often returns the root element too.
+            # If vue_ssr already contains the root tag, we might need to be careful.
+            # But according to assemble_hydration_example.jl, it replaces the inner part.
+            
+            # Let's follow the logic in assemble_hydration_example.jl:
+            rendered_template = replace(rendered_template, m.match => open_tag * vue_ssr * close_tag)
+        else
+            @warn "SakuraEngine [Compiler] : `vue_ssr` provided but `id=\"sk-hydration-area\"` not found in template"
+        end
+    end
 
     has_vue_logic = occursin(r"<script type=\"sk-ts\">"s, content)
     block_re = r"<sk-script>.*?</sk-script>|<sk-template>.*?</sk-template>|<script type=\"sk-ts\">.*?</script>"s

@@ -18,9 +18,41 @@ IMPORTANT : This project is still in the development and testing stages, licensi
 [![Tailwind CSS](https://img.shields.io/badge/tailwind_css-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://github.com/tailwindlabs/tailwindcss)
 [![vite](https://img.shields.io/badge/vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://github.com/vitejs/vite)
 
-## WIP Project SakuraEngine
+## How To Use
 
-### SK mix Vue3 Template Example
+### Follow below example file, or directly test it :
+
+```shell
+julia --project=. scripts/render_hydration_example.jl
+```
+
+```julia
+using SakuraEngine
+
+root_dir = joinpath(@__DIR__, "..")
+input_path = joinpath(root_dir, "template_example", "hydration_example.sk")
+vue_project_dir = joinpath(root_dir, "sakura-vue")
+output_ts_dir = joinpath(vue_project_dir, "src", "sakura")
+
+# 1. Write the TypeScript required for the front-end
+export_assets(input_path, output_ts_dir)
+
+# 2. Call Node.js to execute the rendering script and capture its output string
+vue_html = cd(vue_project_dir) do
+    # Use `read` to capture standard output ( stdout )
+    read(`npx.cmd tsx scripts/render-vue-panel.ts`, String)
+end
+
+# 3. Insert Vue SSR HTML into the Sakura template
+final_html = render_file(input_path; vue_ssr=vue_html)
+
+# 4. Output preview
+output_index = joinpath(vue_project_dir, "index.html")
+write(output_index, final_html)
+println("Success! Hydrated HTML saved to : $output_index")
+```
+
+## Template ( SK SSR mix Vue3 Hydration )
 
 ```html
 #= Julia script =#
@@ -126,13 +158,6 @@ return { title, user, count, todos, serverTags, ready, pending }
 ```
 
 ## Project Detail / Debug
-
-### Currently Run Below To Test
-
-```shell
-julia --project=. scripts/render_hydration_example.jl
-```
-
 ### Current Mixed Template Rules
 
 SakuraEngine uses a two-phase template pipeline for Vue 3 style hydration :
