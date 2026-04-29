@@ -1,5 +1,5 @@
 import { writeFileSync } from 'node:fs'
-import { renderVuePanel } from '../src/entry-server'
+import { renderVuePanel } from '../src/sakura/entry-server'
 
 const args = process.argv.slice(2)
 const outFlagIndex = args.indexOf('--out')

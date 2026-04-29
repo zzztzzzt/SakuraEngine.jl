@@ -65,3 +65,84 @@ function export_assets(input_path::String, output_dir::String)
 
     return true
 end
+
+"""
+    init_frontend(project_path::String)
+
+Initializes a Vite + Vue project for SakuraEngine by creating the necessary 
+bridge files in `src/sakura/`.
+"""
+function init_frontend(project_path::String)
+    sakura_dir = joinpath(project_path, "src", "sakura")
+    mkpath(sakura_dir)
+
+    # Boilerplate 1 : app.ts
+    app_ts = """
+    import { createSSRApp } from 'vue'
+    import template from './vue-template'
+    import setupUserLogic from './generated-logic'
+
+    export function createSkPanelApp() {
+      return createSSRApp({
+        template: template,
+        setup() {
+          const userVariables = setupUserLogic()
+          return typeof userVariables === 'object' ? { ...userVariables } : {}
+        },
+      })
+    }
+    """
+
+    # Boilerplate 2 : entry-client.ts
+    client_ts = """
+    import { createSkPanelApp } from './app'
+
+    const mountNode = document.getElementById('sk-hydration-area')
+
+    if (mountNode) {
+      createSkPanelApp().mount(mountNode)
+    }
+    """
+
+    # Boilerplate 3 : entry-server.ts
+    server_ts = """
+    import { renderToString } from '@vue/server-renderer'
+    import { createSkPanelApp } from './app'
+
+    export async function renderVuePanel() {
+      const app = createSkPanelApp()
+      return await renderToString(app)
+    }
+    """
+
+    write(joinpath(sakura_dir, "app.ts"), app_ts)
+    write(joinpath(sakura_dir, "entry-client.ts"), client_ts)
+    write(joinpath(sakura_dir, "entry-server.ts"), server_ts)
+
+    # Boilerplate 4 : scripts/render-vue-panel.ts ( for Julia to call )
+    render_script_dir = joinpath(project_path, "scripts")
+    mkpath(render_script_dir)
+    
+    node_render_ts = """
+    import { writeFileSync } from 'node:fs'
+    import { renderVuePanel } from '../src/sakura/entry-server'
+
+    const args = process.argv.slice(2)
+    const outFlagIndex = args.indexOf('--out')
+    const outPath = outFlagIndex !== -1 && outFlagIndex < args.length - 1 ? args[outFlagIndex + 1] : null
+
+    const html = await renderVuePanel()
+
+    if (outPath) {
+      writeFileSync(outPath, html)
+    } else {
+      process.stdout.write(html)
+    }
+    """
+    write(joinpath(render_script_dir, "render-vue-panel.ts"), node_render_ts)
+
+    println("SakuraEngine [Pipeline] : Frontend initialized in `$(project_path)`")
+    println("- Bridge files created in `src/sakura/`")
+    println("- Node.js renderer created in `scripts/render-vue-panel.ts`")
+    return true
+end

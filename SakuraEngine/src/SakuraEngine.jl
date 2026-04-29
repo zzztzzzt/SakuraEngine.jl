@@ -1,18 +1,19 @@
 module SakuraEngine
 
 #=
-SakuraEngine.jl — Module Entry Point
+SakuraEngine.jl - Module Entry Point
 
 Loading Order :
-ast.jl         — AST Node Type Definitions
-parser.jl      — Template Parsing Layer
-transformer.jl — Directive Transformation Layer (sk-* / v-*)
-renderer.jl    — HTML Rendering Layer
-compiler.jl    — File Loading Layer
+ast.jl         - AST Node Type Definitions
+parser.jl      - Template Parsing Layer
+transformer.jl - Directive Transformation Layer (sk-* / v-*)
+renderer.jl    - HTML Rendering Layer
+compiler.jl    - File Loading Layer
+pipeline.jl    - SFC Asset Pipeline & Bridge
 =#
 
 const SAKURA_CONFIG = Dict{Symbol, Any}(
-    :client_entry => "/src/entry-client.ts"
+    :client_entry => "/src/sakura/entry-client.ts"
 )
 
 function set_config(key::Symbol, value::Any)
@@ -30,6 +31,6 @@ include("renderer.jl")
 include("compiler.jl")
 include("pipeline.jl")
 
-export render_file, render_template, set_config, export_assets
+export render_file, render_template, set_config, export_assets, init_frontend
 
 end # module SakuraEngine
