@@ -82,9 +82,8 @@ function render_file(path::String; vue_ssr::String="")
             # Note : We assume vue_ssr is the inner content or we handle it accordingly.
             # Actually, Vue SSR renderToString often returns the root element too.
             # If vue_ssr already contains the root tag, we might need to be careful.
-            # But according to assemble_hydration_example.jl, it replaces the inner part.
-            
-            # Let's follow the logic in assemble_hydration_example.jl:
+            # But according to assemble_hydration_example.jl( it already be combined into this file ), it replaces the inner part.
+            # Let's follow the logic in assemble_hydration_example.jl :
             rendered_template = replace(rendered_template, m.match => open_tag * vue_ssr * close_tag)
         else
             @warn "SakuraEngine [Compiler] : `vue_ssr` provided but `id=\"sk-hydration-area\"` not found in template"
