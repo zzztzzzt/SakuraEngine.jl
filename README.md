@@ -34,14 +34,12 @@ npm install tsx
 
 Assuming the Vue project is named `vue-project`
 ```julia
+import SakuraEngine as SKE
+
 root_dir = joinpath(@__DIR__, "path", "to", "your", "root_dir")
 input_path = joinpath(root_dir, "path", "to", "your", "template.sk")
 vue_project_dir = joinpath(root_dir, "vue-project")
 output_ts_dir = joinpath(vue_project_dir, "src", "sakura")
-```
-
-```julia
-import SakuraEngine as SKE
 
 SKE.init_frontend(vue_project_dir)
 
