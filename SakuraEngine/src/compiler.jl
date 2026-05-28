@@ -1,3 +1,5 @@
+# Manually Validated by mmmssstttt-SakuraAxis 2026-05-29
+
 #=
 compiler.jl - File loading layer
 It is responsible for reading .sk files, splitting <sk-script> / <sk-template> blocks,
@@ -11,8 +13,8 @@ Extract the contents of `<sk-script>` and `<sk-template>` from the .sk file stri
 If either block is missing, return an empty string without throwing an error.
 """
 function extract_blocks(content::String)
-    script_match = match(r"<sk-script>(.*?)</sk-script>"s, content)
-    template_match = match(r"<sk-template>(.*?)</sk-template>"s, content)
+    script_match = match(r"<sk-script\b[^>]*>(.*?)</sk-script>"s, content)
+    template_match = match(r"<sk-template\b[^>]*>(.*?)</sk-template>"s, content)
 
     script = script_match !== nothing ? script_match.captures[1] : ""
     template = template_match !== nothing ? template_match.captures[1] : ""
@@ -26,19 +28,31 @@ function extract_blocks(content::String)
     return script, template
 end
 
+const SCRIPT_CACHE = Dict{UInt64, Module}()
+
 """
     eval_script(script) -> Module
 
-Execute the Julia code of `<sk-script>` in a separate module,
-and post back the module for use by the rendering layer.
 """
 function eval_script(script::AbstractString)
-    mod = Module()
+    script_hash = hash(script)
+    if haskey(SCRIPT_CACHE, script_hash)
+        return SCRIPT_CACHE[script_hash]
+    end
+    
+    mod_name = Symbol("SkScript_", string(script_hash, base=16))
+    mod = Module(mod_name)
+
     try
-        include_string(mod, script)
+        Core.eval(mod, :(using Base))
+        ast = Base.Meta.parseall(script)
+        Core.eval(mod, ast)
+
+        SCRIPT_CACHE[script_hash] = mod
     catch e
         error("SakuraEngine [Compiler] : <sk-script> execution failed - $e")
     end
+
     return mod
 end
 
@@ -73,25 +87,39 @@ function render_file(path::String; vue_ssr::String="")
 
     # If Vue SSR content is provided, perform injection
     if !isempty(vue_ssr)
-        pattern = r"(<section\b[^>]*id=\"sk-hydration-area\"[^>]*>)(.*?)(</section>)"s
-        m = match(pattern, rendered_template)
+        m = match(r"<section\b[^>]*id=\"sk-hydration-area\"[^>]*>", rendered_template)
         if m !== nothing
-            open_tag = m.captures[1]
-            close_tag = m.captures[3]
-            # Replace the entire match with open_tag + vue_ssr + close_tag
-            # Note : We assume vue_ssr is the inner content or we handle it accordingly.
-            # Actually, Vue SSR renderToString often returns the root element too.
-            # If vue_ssr already contains the root tag, we might need to be careful.
-            # But according to assemble_hydration_example.jl( it already be combined into this file ), it replaces the inner part.
-            # Let's follow the logic in assemble_hydration_example.jl :
-            rendered_template = replace(rendered_template, m.match => open_tag * vue_ssr * close_tag)
+            start_pos = m.offset + sizeof(m.match) 
+            
+            depth = 1
+            curr_pos = start_pos
+            while depth > 0 && curr_pos <= sizeof(rendered_template)
+                next_open = findnext("<section", rendered_template, curr_pos)
+                next_close = findnext("</section>", rendered_template, curr_pos)
+                
+                if next_close === nothing
+                    break
+                end
+                
+                if next_open !== nothing && first(next_open) < first(next_close)
+                    depth += 1
+                    curr_pos = last(next_open) + 1
+                else
+                    depth -= 1
+                    if depth == 0
+                        rendered_template = rendered_template[1:start_pos-1] * vue_ssr * rendered_template[first(next_close):end]
+                        break
+                    end
+                    curr_pos = last(next_close) + 1
+                end
+            end
         else
             @warn "SakuraEngine [Compiler] : `vue_ssr` provided but `id=\"sk-hydration-area\"` not found in template"
         end
     end
 
-    has_vue_logic = occursin(r"<script type=\"sk-ts\">"s, content)
-    block_re = r"<sk-script>.*?</sk-script>|<sk-template>.*?</sk-template>|<script type=\"sk-ts\">.*?</script>"s
+    has_vue_logic = occursin(r"<script\s+type=[\"']sk-ts[\"'][^>]*>"i, content)
+    block_re = r"<sk-script\b[^>]*>.*?</sk-script>|<sk-template\b[^>]*>.*?</sk-template>|<script\s+type=[\"']sk-ts[\"'][^>]*>.*?</script>"si
     io = IOBuffer()
     pos = 1
 
@@ -115,7 +143,14 @@ function render_file(path::String; vue_ssr::String="")
 
     if has_vue_logic
         client_entry = get_config(:client_entry, "/src/entry-client.ts")
-        html *= "\n<script type=\"module\" src=\"$client_entry\"></script>"
+        script_tag = "\n<script type=\"module\" src=\"$client_entry\"></script>\n"
+
+        body_close_idx = findlast("</body>", html)
+        if body_close_idx !== nothing
+            html = html[1:first(body_close_idx)-1] * script_tag * html[first(body_close_idx):end]
+        else
+            html *= script_tag
+        end
     end
 
     html = replace(html, r"\n{3,}" => "\n\n")

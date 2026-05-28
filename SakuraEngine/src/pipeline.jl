@@ -1,3 +1,5 @@
+# Manually Validated by mmmssstttt-SakuraAxis 2026-05-29
+
 #=
 pipeline.jl - SFC Asset Pipeline
 Responsible for extracting Vue logic/templates from .sk files and 
@@ -39,7 +41,7 @@ function export_assets(input_path::String, output_dir::String)
     write(template_path, "export default `$(safe_vue_template)`")
 
     # 2. Export Vue Logic (generated-logic.ts)
-    script_re = r"<script type=\"sk-ts\">(.*?)</script>"s
+    script_re = r"<script\s+type=[\"']sk-ts[\"'][^>]*>(.*?)</script>"si
     script_match = match(script_re, content)
     user_js = script_match !== nothing ? script_match.captures[1] : "// No logic found"
 
